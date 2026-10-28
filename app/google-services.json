@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1086268701573",
+    "project_id": "gamedomino-f34b5",
+    "storage_bucket": "gamedomino-f34b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086268701573:android:c6fc5378f6aa9a75d5a2ec",
+        "android_client_info": {
+          "package_name": "com.example.gamedomino"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB07YyAjG9Qv8qxRZziM4B8oiQ2oMiu1gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
