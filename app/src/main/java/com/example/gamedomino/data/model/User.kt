@@ -1,4 +1,10 @@
 package com.example.gamedomino.data.model
 
-class User {
-}
+import com.google.firebase.database.IgnoreExtraProperties
+
+@IgnoreExtraProperties
+data class User(
+    val id: String = "",
+    val email: String = "",
+    val username: String = ""
+)
