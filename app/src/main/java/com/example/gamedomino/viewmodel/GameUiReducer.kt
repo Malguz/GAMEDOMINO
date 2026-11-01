@@ -1,4 +1,4 @@
-package viewmodel
+package com.example.gamedomino.viewmodel
 
 import com.example.gamedomino.model.BoardFactory
 import com.example.gamedomino.model.Move

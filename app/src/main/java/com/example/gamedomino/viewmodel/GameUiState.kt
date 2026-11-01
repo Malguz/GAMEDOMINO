@@ -1,5 +1,4 @@
-package viewmodel
-
+package com.example.gamedomino.viewmodel
 import com.example.gamedomino.model.GameState
 import com.example.gamedomino.model.MoveError
 import com.example.gamedomino.model.MoveValidator

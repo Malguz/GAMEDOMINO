@@ -1,5 +1,4 @@
-package viewmodel
-
+package com.example.gamedomino.viewmodel
 import androidx.lifecycle.ViewModel
 import com.example.gamedomino.model.GameFactory
 import com.example.gamedomino.model.Position
