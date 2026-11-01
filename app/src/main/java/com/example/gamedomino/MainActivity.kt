@@ -22,6 +22,7 @@ import com.example.gamedomino.ui.lobby.RoomViewModel
 import com.example.gamedomino.ui.room.WaitingRoomScreen
 import com.example.gamedomino.ui.theme.GameDominoTheme
 import com.example.gamedomino.util.Resource
+import com.example.gamedomino.ui.game.GameBoardScreen
 
 enum class Screen {
     AUTH, LOBBY, WAITING_ROOM, GAME_BOARD
@@ -87,16 +88,7 @@ fun AppNavigation() {
             )
         }
         Screen.GAME_BOARD -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "¡La Partida Ha Comenzado!\n(Módulo del Integrante 2)",
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-            }
+            GameBoardScreen()
         }
     }
 }
