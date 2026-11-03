@@ -88,7 +88,9 @@ fun AppNavigation() {
             )
         }
         Screen.GAME_BOARD -> {
-            GameBoardScreen()
+            GameBoardScreen(
+                onBackToMenu = { currentScreen = Screen.LOBBY }
+            )
         }
     }
 }

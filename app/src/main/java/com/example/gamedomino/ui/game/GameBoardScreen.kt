@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +49,14 @@ import com.example.gamedomino.viewmodel.GameViewModel
 
 /** Connects the screen to the ViewModel. All the drawing lives in [GameBoardContent]. */
 @Composable
-fun GameBoardScreen(viewModel: GameViewModel = viewModel()) {
+fun GameBoardScreen(
+    viewModel: GameViewModel = viewModel(),
+    onBackToMenu: () -> Unit = {}
+) {
+    // The ViewModel is kept alive by the Activity, so when we come back to this
+    // screen it still holds the previous (finished) game. Start a fresh game on entry.
+    LaunchedEffect(Unit) { viewModel.onNewGame() }
+
     val ui by viewModel.uiState.collectAsState()
     GameBoardContent(
         ui = ui,
@@ -57,7 +65,8 @@ fun GameBoardScreen(viewModel: GameViewModel = viewModel()) {
         onCellTapped = { viewModel.onCellTapped(it) },
         onDrawTile = { viewModel.onDrawTile() },
         onPassTurn = { viewModel.onPassTurn() },
-        onNewGame = { viewModel.onNewGame() }
+        onNewGame = { viewModel.onNewGame() },
+        onBackToMenu = onBackToMenu
     )
 }
 
@@ -70,7 +79,8 @@ fun GameBoardContent(
     onCellTapped: (Position) -> Unit,
     onDrawTile: () -> Unit,
     onPassTurn: () -> Unit,
-    onNewGame: () -> Unit
+    onNewGame: () -> Unit,
+    onBackToMenu: () -> Unit = {}
 ) {
     val game = ui.game
     Column(
@@ -108,7 +118,7 @@ fun GameBoardContent(
     }
 
     ui.result?.let { result ->
-        WinnerDialog(result = result, onNewGame = onNewGame)
+        WinnerDialog(result = result, onNewGame = onNewGame, onBackToMenu = onBackToMenu)
     }
 }
 
@@ -116,7 +126,8 @@ fun GameBoardContent(
 @Composable
 private fun WinnerDialog(
     result: com.example.gamedomino.model.GameResult,
-    onNewGame: () -> Unit
+    onNewGame: () -> Unit,
+    onBackToMenu: () -> Unit
 ) {
     Dialog(onDismissRequest = { /* keep it open until a new game is started */ }) {
         Card(
@@ -161,8 +172,16 @@ private fun WinnerDialog(
                     )
                 }
                 Spacer(Modifier.height(20.dp))
-                Button(onClick = onNewGame, modifier = Modifier.fillMaxWidth()) {
-                    Text("Nueva partida")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(onClick = onNewGame, modifier = Modifier.weight(1f)) {
+                        Text("Nueva partida")
+                    }
+                    OutlinedButton(onClick = onBackToMenu, modifier = Modifier.weight(1f)) {
+                        Text("Menú")
+                    }
                 }
             }
         }
