@@ -3,12 +3,17 @@ package com.example.gamedomino.ui.game
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -19,9 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gamedomino.model.GameFactory
 import com.example.gamedomino.model.MoveError
@@ -109,23 +118,71 @@ private fun WinnerDialog(
     result: com.example.gamedomino.model.GameResult,
     onNewGame: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = { /* keep it open until a new game is started */ },
-        title = { Text(text = "Game over") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(text = "Winner: ${result.winner.name}")
-                Text(text = "Points: ${result.points}")
-                Text(text = "Territories: ${result.territories}")
+    Dialog(onDismissRequest = { /* keep it open until a new game is started */ }) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Fin de la partida",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Ganador",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = result.winner.name,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(16.dp))
+                ResultRow(label = "Puntos", value = "${result.points}")
+                Spacer(Modifier.height(6.dp))
+                ResultRow(label = "Territorios conquistados", value = "${result.territories}")
                 if (result.wonByTiebreak) {
-                    Text(text = "Won by tiebreak (fewer tiles in hand)")
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "Ganó por desempate: menos fichas en la mano.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(Modifier.height(20.dp))
+                Button(onClick = onNewGame, modifier = Modifier.fillMaxWidth()) {
+                    Text("Nueva partida")
                 }
             }
-        },
-        confirmButton = {
-            Button(onClick = onNewGame) { Text("Nueva partida") }
         }
-    )
+    }
+}
+
+/** One labelled value inside the winner card (label on the left, value on the right). */
+@Composable
+private fun ResultRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
 
 private fun turnText(ui: GameUiState): String {
