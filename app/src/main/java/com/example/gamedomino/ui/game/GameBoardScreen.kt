@@ -1,6 +1,7 @@
 package com.example.gamedomino.ui.game
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +47,7 @@ import com.example.gamedomino.viewmodel.GameEvent
 import com.example.gamedomino.viewmodel.GameUiReducer
 import com.example.gamedomino.viewmodel.GameUiState
 import com.example.gamedomino.viewmodel.GameViewModel
+import com.example.gamedomino.viewmodel.OnlineGameViewModel
 
 /** Connects the screen to the ViewModel. All the drawing lives in [GameBoardContent]. */
 @Composable
@@ -80,7 +82,8 @@ fun GameBoardContent(
     onDrawTile: () -> Unit,
     onPassTurn: () -> Unit,
     onNewGame: () -> Unit,
-    onBackToMenu: () -> Unit = {}
+    onBackToMenu: () -> Unit = {},
+    showNewGame: Boolean = true
 ) {
     val game = ui.game
     Column(
@@ -114,11 +117,18 @@ fun GameBoardContent(
             OutlinedButton(onClick = onPassTurn, enabled = !finished && !ui.canPlay && game.pool.isEmpty()) { Text("Pasar") }
         }
         ui.lastEvent?.let { Text(text = eventText(it), style = MaterialTheme.typography.bodyLarge) }
-        TextButton(onClick = onNewGame) { Text("Nueva partida") }
+        if (showNewGame) {
+            TextButton(onClick = onNewGame) { Text("Nueva partida") }
+        }
     }
 
     ui.result?.let { result ->
-        WinnerDialog(result = result, onNewGame = onNewGame, onBackToMenu = onBackToMenu)
+        WinnerDialog(
+            result = result,
+            onNewGame = onNewGame,
+            onBackToMenu = onBackToMenu,
+            showNewGame = showNewGame
+        )
     }
 }
 
@@ -127,7 +137,8 @@ fun GameBoardContent(
 private fun WinnerDialog(
     result: com.example.gamedomino.model.GameResult,
     onNewGame: () -> Unit,
-    onBackToMenu: () -> Unit
+    onBackToMenu: () -> Unit,
+    showNewGame: Boolean = true
 ) {
     Dialog(onDismissRequest = { /* keep it open until a new game is started */ }) {
         Card(
@@ -176,8 +187,10 @@ private fun WinnerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(onClick = onNewGame, modifier = Modifier.weight(1f)) {
-                        Text("Nueva partida")
+                    if (showNewGame) {
+                        Button(onClick = onNewGame, modifier = Modifier.weight(1f)) {
+                            Text("Nueva partida")
+                        }
                     }
                     OutlinedButton(onClick = onBackToMenu, modifier = Modifier.weight(1f)) {
                         Text("Menú")
@@ -202,6 +215,38 @@ private fun ResultRow(label: String, value: String) {
             fontWeight = FontWeight.Bold
         )
     }
+}
+
+/**
+ * Online screen: it reads the shared state from [OnlineGameViewModel] and draws the
+ * same board. While the first state is loading, it shows a short message.
+ * The "Nueva partida" button is shown only to the host.
+ */
+@Composable
+fun OnlineGameScreen(
+    viewModel: OnlineGameViewModel,
+    isHost: Boolean,
+    onBackToMenu: () -> Unit = {}
+) {
+    val ui by viewModel.uiState.collectAsState()
+    val state = ui
+    if (state == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "Cargando partida...", style = MaterialTheme.typography.titleMedium)
+        }
+        return
+    }
+    GameBoardContent(
+        ui = state,
+        onTileSelected = { viewModel.onTileSelected(it) },
+        onFlip = { viewModel.onFlip() },
+        onCellTapped = { viewModel.onCellTapped(it) },
+        onDrawTile = { viewModel.onDrawTile() },
+        onPassTurn = { viewModel.onPassTurn() },
+        onNewGame = { viewModel.onNewGame() },
+        onBackToMenu = onBackToMenu,
+        showNewGame = isHost
+    )
 }
 
 private fun turnText(ui: GameUiState): String {

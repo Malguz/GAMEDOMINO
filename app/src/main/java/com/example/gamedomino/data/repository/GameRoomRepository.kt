@@ -113,4 +113,55 @@ class GameRoomRepository(
             Resource.Error(e.localizedMessage ?: "No se pudo iniciar la partida")
         }
     }
+
+    // ---- Game state sync (online play) ----
+
+    /**
+     * Writes the initial game state only when there is none yet.
+     * Only the host should call this; it is safe if two devices race because the
+     * transaction keeps the first value and ignores the rest.
+     */
+    suspend fun setInitialGameState(roomId: String, json: String): Resource<Unit> {
+        return try {
+            val stateRef = roomsRef.child(roomId).child("tableroState")
+            val current = stateRef.get().await()
+            val existing = current.getValue(String::class.java)
+            if (existing.isNullOrBlank()) {
+                stateRef.setValue(json).await()
+            }
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "No se pudo crear el estado inicial")
+        }
+    }
+
+    /**
+     * Overwrites the current game state (used after a move/draw/pass).
+     */
+    suspend fun pushGameState(roomId: String, json: String): Resource<Unit> {
+        return try {
+            roomsRef.child(roomId).child("tableroState").setValue(json).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "No se pudo actualizar la partida")
+        }
+    }
+
+    /**
+     * Listens in real time to the game state JSON. Emits null while there is none.
+     */
+    fun listenGameState(roomId: String): Flow<String?> = callbackFlow {
+        val stateRef = roomsRef.child(roomId).child("tableroState")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                trySend(snapshot.getValue(String::class.java))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(null)
+            }
+        }
+        stateRef.addValueEventListener(listener)
+        awaitClose { stateRef.removeEventListener(listener) }
+    }
 }

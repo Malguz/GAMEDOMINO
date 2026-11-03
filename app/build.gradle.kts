@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
 }
 
@@ -58,6 +59,9 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+
+    // Kotlinx Serialization (JSON para sincronizar el estado del juego)
+    implementation(libs.kotlinx.serialization.json)
 
     // Testing & Debug
     testImplementation(libs.junit)

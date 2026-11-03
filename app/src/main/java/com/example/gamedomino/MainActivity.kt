@@ -22,7 +22,8 @@ import com.example.gamedomino.ui.lobby.RoomViewModel
 import com.example.gamedomino.ui.room.WaitingRoomScreen
 import com.example.gamedomino.ui.theme.GameDominoTheme
 import com.example.gamedomino.util.Resource
-import com.example.gamedomino.ui.game.GameBoardScreen
+import com.example.gamedomino.ui.game.OnlineGameScreen
+import com.example.gamedomino.viewmodel.OnlineGameViewModel
 
 enum class Screen {
     AUTH, LOBBY, WAITING_ROOM, GAME_BOARD
@@ -88,9 +89,30 @@ fun AppNavigation() {
             )
         }
         Screen.GAME_BOARD -> {
-            GameBoardScreen(
-                onBackToMenu = { currentScreen = Screen.LOBBY }
-            )
+            val roomResource = roomViewModel.activeRoomState.collectAsState().value
+            val room = (roomResource as? Resource.Success)?.data
+            if (room == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Cargando partida...")
+                }
+            } else {
+                // First two players of the room become the two game players.
+                val players = room.listaJugadores.take(2).map { it.id to it.username }
+                val isHost = room.hostId == currentUser.id
+                val onlineViewModel = remember(room.idSala, currentUser.id) {
+                    OnlineGameViewModel(
+                        roomId = room.idSala,
+                        myUserId = currentUser.id,
+                        players = players,
+                        isHost = isHost
+                    )
+                }
+                OnlineGameScreen(
+                    viewModel = onlineViewModel,
+                    isHost = isHost,
+                    onBackToMenu = { currentScreen = Screen.LOBBY }
+                )
+            }
         }
     }
 }
