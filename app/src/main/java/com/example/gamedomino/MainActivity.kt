@@ -58,9 +58,10 @@ fun AppNavigation() {
     var activeRoomId by remember { mutableStateOf("") }
 
     val loginState by authViewModel.loginState.collectAsState()
+    val loggedUser = (loginState as? Resource.Success)?.data
     val currentUser = User(
-        id = (loginState as? Resource.Success)?.data?.id ?: "user_id",
-        username = (loginState as? Resource.Success)?.data?.username ?: "Jugador"
+        id = loggedUser?.id ?: authViewModel.currentUserId() ?: "user_id",
+        username = loggedUser?.username ?: authViewModel.currentUserName() ?: "Jugador"
     )
 
     when (currentScreen) {

@@ -32,6 +32,13 @@ class AuthViewModel(
         return repository.getCurrentUser() != null
     }
 
+
+    fun currentUserId(): String? = repository.getCurrentUser()?.uid
+
+
+    fun currentUserName(): String? =
+        repository.getCurrentUser()?.email?.substringBefore("@")
+
     /**
      * Inicia sesión llamando al repositorio.
      */
