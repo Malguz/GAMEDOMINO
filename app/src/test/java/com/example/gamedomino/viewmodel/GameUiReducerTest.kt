@@ -138,4 +138,36 @@ class GameUiReducerTest {
         assertEquals("p2", ui.game.currentPlayerId)
         assertEquals(GameEvent.Passed, ui.lastEvent)
     }
+
+    @Test
+    fun `result is null while the game is still being played`() {
+        assertNull(uiWith(listOf(Tile(1, 2))).result)
+    }
+
+    @Test
+    fun `result exposes the winner when the game is finished`() {
+        val start = uiWith(listOf(Tile(1, 2)))
+        val finished = start.copy(
+            game = start.game.copy(
+                status = com.example.gamedomino.model.GameStatus.FINISHED,
+                players = listOf(
+                    com.example.gamedomino.model.Player("p1", "Ana", hand = emptyList(), score = 9),
+                    com.example.gamedomino.model.Player("p2", "Luis", hand = listOf(Tile(0, 0)), score = 3)
+                )
+            )
+        )
+        val result = finished.result!!
+        assertEquals("p1", result.winner.id)
+        assertEquals(9, result.points)
+    }
+
+    @Test
+    fun `actions do nothing once the game is finished`() {
+        val start = uiWith(listOf(Tile(5, 6)), mapOf(Position(2, 2) to 3))
+        val finished = start.copy(game = start.game.copy(status = com.example.gamedomino.model.GameStatus.FINISHED))
+        assertEquals(finished, GameUiReducer.selectTile(finished, Tile(5, 6)))
+        assertEquals(finished, GameUiReducer.drawTile(finished))
+        assertEquals(finished, GameUiReducer.passTurn(finished))
+        assertEquals(finished, GameUiReducer.tapCell(finished, Position(0, 0)))
+    }
 }

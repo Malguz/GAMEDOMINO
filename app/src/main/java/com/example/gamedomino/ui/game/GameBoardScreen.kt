@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -88,13 +89,43 @@ fun GameBoardContent(
         Text(text = "Mano de ${ui.currentPlayer.name}", style = MaterialTheme.typography.labelLarge)
         HandView(hand = ui.currentPlayer.hand, selected = ui.selectedTile, onTileClick = onTileSelected)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onFlip, enabled = ui.selectedTile != null) { Text("Voltear") }
-            Button(onClick = onDrawTile, enabled = !ui.canPlay && game.pool.isNotEmpty()) { Text("Robar") }
-            OutlinedButton(onClick = onPassTurn, enabled = !ui.canPlay && game.pool.isEmpty()) { Text("Pasar") }
+            val finished = game.status == com.example.gamedomino.model.GameStatus.FINISHED
+            OutlinedButton(onClick = onFlip, enabled = !finished && ui.selectedTile != null) { Text("Voltear") }
+            Button(onClick = onDrawTile, enabled = !finished && !ui.canPlay && game.pool.isNotEmpty()) { Text("Robar") }
+            OutlinedButton(onClick = onPassTurn, enabled = !finished && !ui.canPlay && game.pool.isEmpty()) { Text("Pasar") }
         }
         ui.lastEvent?.let { Text(text = eventText(it), style = MaterialTheme.typography.bodyLarge) }
         TextButton(onClick = onNewGame) { Text("Nueva partida") }
     }
+
+    ui.result?.let { result ->
+        WinnerDialog(result = result, onNewGame = onNewGame)
+    }
+}
+
+
+@Composable
+private fun WinnerDialog(
+    result: com.example.gamedomino.model.GameResult,
+    onNewGame: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { /* keep it open until a new game is started */ },
+        title = { Text(text = "Game over") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(text = "Winner: ${result.winner.name}")
+                Text(text = "Points: ${result.points}")
+                Text(text = "Territories: ${result.territories}")
+                if (result.wonByTiebreak) {
+                    Text(text = "Won by tiebreak (fewer tiles in hand)")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onNewGame) { Text("Nueva partida") }
+        }
+    )
 }
 
 private fun turnText(ui: GameUiState): String {

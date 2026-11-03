@@ -35,6 +35,11 @@ data class GameUiState(
     val isMyTurn: Boolean
         get() = myPlayerId == null || myPlayerId == game.currentPlayerId
 
+    /** The final result when the game is over, or null while it is still being played. */
+    val result: com.example.gamedomino.model.GameResult?
+        get() = if (game.status == com.example.gamedomino.model.GameStatus.FINISHED)
+            com.example.gamedomino.model.GameRules.winnerOf(game) else null
+
     /** False means the current player must draw (or pass if the pool is empty). */
     val canPlay: Boolean
         get() = MoveValidator.hasValidMove(game, game.currentPlayerId)

@@ -106,4 +106,35 @@ class TurnManagerTest {
         val state = stateWith(listOf(Tile(3, 6)), mapOf(Position(2, 2) to 3), pool = emptyList())
         assertEquals(TurnResult.Rejected(TurnError.HAS_VALID_MOVE), TurnManager.passTurn(state, "p1"))
     }
+
+    @Test
+    fun `passing on a full block ends the game instead of looping`() {
+        // Both hands are stuck and the pool is empty: the only action is to pass.
+        // The old bug let players pass forever; now the game must finish.
+        val stuck = stuckState(pool = emptyList())
+            .let { s -> s.copy(players = listOf(s.players[0], s.players[1].copy(hand = listOf(Tile(4, 4))))) }
+        val result = TurnManager.passTurn(stuck, "p1") as TurnResult.Done
+        assertEquals(GameStatus.FINISHED, result.state.status)
+    }
+
+    @Test
+    fun `playing the last tile ends the game by domino`() {
+        // p1 holds a single tile; after playing it the hand is empty -> domino.
+        val state = stateWith(listOf(Tile(1, 2)))
+            .let { s -> s.copy(players = listOf(s.players[0].copy(hand = listOf(Tile(1, 2))), s.players[1])) }
+        val result = TurnManager.playMove(state, Move("p1", Tile(1, 2), Position(0, 2), Position(0, 3)))
+        result as PlayResult.Played
+        assertTrue(result.state.playerById("p1")!!.hand.isEmpty())
+        assertEquals(GameStatus.FINISHED, result.state.status)
+    }
+
+    @Test
+    fun `a normal pass does not end the game when another player can still move`() {
+        // p1 is stuck, but p2 can play 3-6 on the board 3. Pool empty so p1 may pass.
+        val state = stateWith(listOf(Tile(5, 6)), mapOf(Position(2, 2) to 3), pool = emptyList())
+            .let { s -> s.copy(players = listOf(s.players[0], s.players[1].copy(hand = listOf(Tile(3, 6))))) }
+        val result = TurnManager.passTurn(state, "p1") as TurnResult.Done
+        assertEquals(GameStatus.PLAYING, result.state.status)
+        assertEquals("p2", result.state.currentPlayerId)
+    }
 }

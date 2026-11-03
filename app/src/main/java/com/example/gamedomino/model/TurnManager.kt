@@ -38,7 +38,8 @@ object TurnManager {
                 val extraTurn = result.conquered.any { position ->
                     result.state.cellAt(position)?.type == CellType.PORTAL
                 }
-                val next = if (extraTurn) result.state else advanceTurn(result.state)
+                val moved = if (extraTurn) result.state else advanceTurn(result.state)
+                val next = GameRules.checkEndGame(moved)
                 PlayResult.Played(next, result.pointsGained, result.conquered, extraTurn)
             }
         }
@@ -62,7 +63,7 @@ object TurnManager {
         checkTurn(state, playerId)?.let { return TurnResult.Rejected(it) }
         if (MoveValidator.hasValidMove(state, playerId)) return TurnResult.Rejected(TurnError.HAS_VALID_MOVE)
         if (state.pool.isNotEmpty()) return TurnResult.Rejected(TurnError.POOL_NOT_EMPTY)
-        return TurnResult.Done(advanceTurn(state))
+        return TurnResult.Done(GameRules.checkEndGame(advanceTurn(state)))
     }
 
     /** Next player in order; the round counter goes up when play returns to the first player. */
